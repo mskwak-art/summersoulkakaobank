@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RE:NDOM TYPING CHALLENGE</title>
+  <style>
+    :root{
+      --kb-yellow:#FEE500;
+      --kb-black:#111;
+      --card-radius:20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Pretendard,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+      color:#111;
+      background:#fafafa;
+    }
+    .wrap{ max-width: 1240px; margin:40px auto 64px; padding:0 20px; }
+    h1.game-title{
+      margin: 4px 0 8px; text-align:center;
+      font-size: clamp(22px, 3vw, 34px);
+    }
+    p.game-desc{
+      margin:0 auto 28px; text-align:center;
+      line-height:1.6; color:#444;
+      font-size: clamp(13px, 1.8vw, 15px);
+    }
+
+    .stage{
+      display:flex; align-items:flex-start; justify-content:center;
+      gap: clamp(36px, 6.5vw, 72px); flex-wrap:wrap; margin-top:18px;
+    }
+
+    /* LEFT CARD */
+    .display-card{
+      width: clamp(380px, 38vw, 460px);
+      height: clamp(240px, 26vw, 300px);
+      background: var(--kb-yellow);
+      border-radius: var(--card-radius);
+      position: relative;
+      box-shadow: 0 14px 28px rgba(0,0,0,.08);
+      padding: 20px 22px;
+      overflow: hidden;
+      border:1px solid #e6e6e6;
+      color: var(--kb-black);
+    }
+    .brand{ position:absolute; top:14px; right:16px;
+      background:#fff; color:#111; font-weight:700;
+      padding:7px 11px; border-radius:999px; font-size:12px;
+      box-shadow: 0 2px 0 rgba(0,0,0,.05) inset;
+    }
+    .chip{ width:50px; height:36px; background:linear-gradient(180deg,#c9b77a,#a39054);
+      border-radius:8px; margin:8px 0 16px; box-shadow:inset 0 0 0 2px rgba(0,0,0,.08);
+    }
+    .card-number{
+      font-family: ui-monospace,Menlo,Consolas,monospace;
+      font-size: clamp(22px, 3.2vw, 28px);
+      letter-spacing:2px; margin:4px 0 16px;
+    }
+    .row{ display:flex; gap:18px; align-items:center; font-size:15px; }
+    .muted{ color:#333; font-weight:700 }
+    .holder{ position:absolute; bottom:16px; left:22px; right:22px;
+      display:flex; justify-content:space-between; align-items:center;
+      font-size:14px;
+    }
+
+    .display-card .blur-overlay{ position:absolute; inset:0; display:none; }
+    .display-card.blur .blur-overlay{
+      display:grid; place-items:center;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      background: rgba(255,255,255,.35);
+    }
+    .count-num{ font-size: clamp(40px, 6.5vw, 72px); font-weight:900; }
+
+    /* RIGHT PANEL */
+    .panel{
+      width: clamp(380px, 40vw, 520px);
+      min-height: clamp(260px, 28vw, 320px);
+      background:#fff; border:1px solid #e6e6e6;
+      border-radius: var(--card-radius);
+      box-shadow: 0 14px 28px rgba(0,0,0,.06);
+      padding:20px 22px 24px;
+    }
+    .inputs{ display:flex; flex-direction:column; gap:14px; }
+    label{ font-size:14px; color:#333; font-weight:800; display:block; margin-bottom:6px; }
+    input{
+      width:100%; height:48px; border-radius:12px;
+      border:1px solid #ddd; padding:0 12px;
+      font-size:18px; outline:none; background:#fff;
+      font-variant-numeric: tabular-nums;
+    }
+    input:focus{ border-color:#111; box-shadow:0 0 0 3px rgba(0,0,0,.08); }
+    input.wrong{ box-shadow:0 0 0 2px rgba(211,47,47,.25) inset; border-color:#d32f2f; }
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .cardnum-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .cardnum-grid input{text-align:center; letter-spacing:1px;}
+
+    .toolbar{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-top:18px; gap:12px; flex-wrap:wrap;
+    }
+    .btn{
+      background:#111; color:#fff; border:0;
+      padding:13px 28px; border-radius:12px; font-weight:800;
+      font-size:17px; cursor:pointer; transition:transform .08s ease, opacity .2s ease;
+    }
+    .btn.secondary{ background:#ededed; color:#111; }
+    .btn:hover{ transform:translateY(-1px); }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+
+    .stat{ display:flex; gap:16px; align-items:center; font-size:16px; color:#000; font-weight:900; }
+    .stat b{ font-weight:900; font-size:18px; font-variant-numeric:tabular-nums; }
+    .split{ width:1px; height:18px; background:#ddd; display:inline-block; }
+
+    /* MODAL */
+    .modal-backdrop{
+      position:fixed; inset:0; display:none;
+      background:rgba(0,0,0,.45);
+      align-items:center; justify-content:center; padding:20px;
+    }
+    .modal{
+      width:min(640px,96vw); background:#fff; border-radius:20px; padding:40px 28px 32px;
+      box-shadow:0 24px 64px rgba(0,0,0,.35); border:1px solid #eee;
+      text-align:center;
+    }
+    .modal h3{ margin:0 0 18px; font-size:26px; }
+    .bigline{ font-size: clamp(28px, 5vw, 44px); font-weight:900; letter-spacing:.2px; }
+    .modal .actions{ display:flex; justify-content:center; gap:12px; margin-top:28px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="game-title">RE:NDOM TYPING CHALLENGE</h1>
+    <p class="game-desc">
+      START 버튼을 누르면 3초 카운트다운이 시작됩니다!<br>
+      카운트 후 왼쪽 카드 정보를 누락하지 않고 입력했을 때 게임이 종료됩니다.<br>
+      누구보다 빠르게 카드 정보를 입력해 주세요!
+    </p>
+
+    <div class="stage">
+      <div id="displayCard" class="display-card" aria-label="제시된 카드 정보">
+        <div class="brand">RE:PLAY</div>
+        <div class="chip"></div>
+        <div class="card-number" id="cardNumberText">0000 0000 0000 0000</div>
+        <div class="row"><span class="muted">만료</span><strong id="expText">00/00</strong><span class="muted">CVC</span><strong id="cvcText">000</strong></div>
+        <div class="holder"><span class="muted">카카오뱅크</span><span>PLATINUM</span></div>
+        <div class="blur-overlay"><div class="count-num" id="countNum">3</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="inputs">
+          <div>
+            <label>카드 번호</label>
+            <div class="cardnum-grid">
+              <input id="num1" inputmode="numeric" maxlength="4" disabled />
+              <input id="num2" inputmode="numeric" maxlength="4" disabled />
+              <input id="num3" inputmode="numeric" maxlength="4" disabled />
+              <input id="num4" inputmode="numeric" maxlength="4" disabled />
+            </div>
+          </div>
+          <div class="grid">
+            <div>
+              <label>만료 (YY/MM)</label>
+              <div class="grid">
+                <input id="yy" inputmode="numeric" maxlength="2" placeholder="YY" disabled />
+                <input id="mm" inputmode="numeric" maxlength="2" placeholder="MM" disabled />
+              </div>
+            </div>
+            <div>
+              <label>CVC</label>
+              <input id="cvc" inputmode="numeric" maxlength="3" placeholder="***" disabled />
+            </div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="stat">
+            <span>⏱ <b id="time">0.000</b>s</span>
+            <span class="split"></span>
+            <span>오류 <b id="err">0</b></span>
+          </div>
+          <div>
+            <button id="startBtn" class="btn">START</button>
+            <button id="resetBtn" class="btn secondary" disabled>RESET</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+      <h3>결과</h3>
+      <div class="bigline">⏱ <span id="finalTime">0.000</span>초!</div>
+      <div class="actions">
+        <button id="againBtn" class="btn secondary">다시 하기</button>
+        <button id="closeBtn" class="btn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== GAME STATE ======
+    let ANSWER = null; // randomized each round
+    let errorCount = 0;
+
+    // Elements
+    const displayCard = document.getElementById('displayCard');
+    const countNum = document.getElementById('countNum');
+    const cardNumberText = document.getElementById('cardNumberText');
+    const expText = document.getElementById('expText');
+    const cvcText = document.getElementById('cvcText');
+
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const timeEl = document.getElementById('time');
+    const errEl = document.getElementById('err');
+
+    const n1 = document.getElementById('num1');
+    const n2 = document.getElementById('num2');
+    const n3 = document.getElementById('num3');
+    const n4 = document.getElementById('num4');
+    const yy = document.getElementById('yy');
+    const mm = document.getElementById('mm');
+    const cvc = document.getElementById('cvc');
+    const inputs = [n1,n2,n3,n4,yy,mm,cvc];
+
+    // Modal
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const finalTime = document.getElementById('finalTime');
+    const againBtn = document.getElementById('againBtn');
+    const closeBtn = document.getElementById('closeBtn');
+
+    // ====== TIMER ======
+    let startTime = 0, rafId = null;
+    function startTimer(){
+      startTime = performance.now();
+      const tick = (now)=>{
+        const t = (now - startTime)/1000;
+        timeEl.textContent = t.toFixed(3);
+        rafId = requestAnimationFrame(tick);
+      };
+      rafId = requestAnimationFrame(tick);
+    }
+    function stopTimer(){
+      if(rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+      return parseFloat(timeEl.textContent);
+    }
+    function resetTimer(){
+      if(rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+      timeEl.textContent = "0.000";
+    }
+
+    // ====== HELPERS ======
+    function setDisabledAll(disabled){ inputs.forEach(i => i.disabled = disabled); }
+    function clearAll(){ inputs.forEach(i => { i.value = ""; i.classList.remove('wrong'); }); }
+    function focusFirst(){ n1.focus(); n1.select && n1.select(); }
+    function showModal(sec){
+      finalTime.textContent = sec.toFixed(3);
+      modalBackdrop.style.display = "flex";
+      modalBackdrop.setAttribute('aria-hidden','false');
+    }
+    function hideModal(){
+      modalBackdrop.style.display = "none";
+      modalBackdrop.setAttribute('aria-hidden','true');
+    }
+
+    // Random helpers
+    function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function randPadded(n, len){
+      let s = String(n);
+      while(s.length < len) s = "0"+s;
+      return s;
+    }
+    function randomCardData(){
+      const seg = ()=> randPadded(randInt(0,9999),4);
+      let first = randInt(1,9) + "" + randPadded(randInt(0,999),3); // avoid leading 0
+      return {
+        cardNumber: [first, seg(), seg(), seg()],
+        yy: randPadded(randInt(26,35),2),
+        mm: randPadded(randInt(1,12),2),
+        cvc: randPadded(randInt(0,999),3)
+      };
+    }
+    function renderLeftCard(a){
+      cardNumberText.textContent = a.cardNumber.join(" ");
+      expText.textContent = a.yy + "/" + a.mm;
+      cvcText.textContent = a.cvc;
+    }
+
+    // Recompute error count per digit across all fields
+    function recomputeErrors(){
+      const a = ANSWER;
+      let errs = 0;
+
+      const segs = [n1.value,n2.value,n3.value,n4.value];
+      for(let i=0;i<4;i++){
+        const exp = a.cardNumber[i];
+        const cur = segs[i];
+        for(let j=0;j<cur.length;j++){
+          if(cur[j] !== exp[j]) errs++;
+        }
+        // visual hint for wrong segment (prefix check)
+        const segInput = [n1,n2,n3,n4][i];
+        if(cur.length>0 && cur !== exp.slice(0,cur.length)){
+          segInput.classList.add('wrong');
+        }else{
+          segInput.classList.remove('wrong');
+        }
+      }
+      // YY
+      for(let j=0;j<yy.value.length;j++){
+        if(yy.value[j] !== a.yy[j]) errs++;
+      }
+      yy.classList.toggle('wrong', yy.value.length>0 && yy.value !== a.yy.slice(0,yy.value.length));
+      // MM
+      for(let j=0;j<mm.value.length;j++){
+        if(mm.value[j] !== a.mm[j]) errs++;
+      }
+      mm.classList.toggle('wrong', mm.value.length>0 && mm.value !== a.mm.slice(0,mm.value.length));
+      // CVC
+      for(let j=0;j<cvc.value.length;j++){
+        if(cvc.value[j] !== a.cvc[j]) errs++;
+      }
+      cvc.classList.toggle('wrong', cvc.value.length>0 && cvc.value !== a.cvc.slice(0,cvc.value.length));
+
+      errorCount = errs;
+      errEl.textContent = errorCount;
+    }
+
+    function isAllMatch(){
+      const a = ANSWER;
+      return (
+        n1.value === a.cardNumber[0] &&
+        n2.value === a.cardNumber[1] &&
+        n3.value === a.cardNumber[2] &&
+        n4.value === a.cardNumber[3] &&
+        yy.value === a.yy &&
+        mm.value === a.mm &&
+        cvc.value === a.cvc
+      );
+    }
+    function tryFinish(){
+      recomputeErrors();
+      if(isAllMatch()){
+        const sec = stopTimer();
+        setDisabledAll(true);
+        startBtn.disabled = true;
+        resetBtn.disabled = false;
+        showModal(sec);
+      }
+    }
+
+    // Input behaviors
+    function attachSegment(el, next, maxLen){
+      el.addEventListener('input', ()=>{
+        el.value = el.value.replace(/[^0-9]/g,'');
+        if(el.value.length >= maxLen && next) next.focus();
+        tryFinish();
+      });
+    }
+    attachSegment(n1,n2,4);
+    attachSegment(n2,n3,4);
+    attachSegment(n3,n4,4);
+    attachSegment(n4,yy,4);
+    attachSegment(yy,mm,2);
+    attachSegment(mm,cvc,2);
+    attachSegment(cvc,null,3);
+
+    // Prevent paste & drop
+    inputs.forEach(el=>{
+      el.addEventListener('paste', e => e.preventDefault());
+      el.addEventListener('drop', e => e.preventDefault());
+      el.addEventListener('keydown', (e)=>{
+        const allowed = ['Backspace','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Delete'];
+        if(allowed.includes(e.key)) return;
+        if(!/^[0-9]$/.test(e.key)) e.preventDefault();
+      });
+    });
+
+    // Countdown (blur only during countdown)
+    function doCountdown(seconds=3){
+      return new Promise(resolve=>{
+        let left = seconds;
+        countNum.textContent = left;
+        displayCard.classList.add('blur');
+        const iv = setInterval(()=>{
+          left--;
+          if(left<=0){
+            clearInterval(iv);
+            displayCard.classList.remove('blur'); // reveal
+            resolve();
+          }else{
+            countNum.textContent = left;
+          }
+        },1000);
+      });
+    }
+
+    async function startGame(){
+      // New random card each round
+      ANSWER = randomCardData();
+      renderLeftCard(ANSWER);
+
+      // Reset state
+      startBtn.disabled = true;
+      resetBtn.disabled = true;
+      setDisabledAll(true);
+      clearAll();
+      errorCount = 0; errEl.textContent = errorCount;
+      resetTimer();
+
+      // Countdown
+      await doCountdown(3);
+
+      // Start input
+      setDisabledAll(false);
+      focusFirst();
+      startTimer();
+      resetBtn.disabled = false;
+    }
+
+    function resetGame(){
+      hideModal();
+      clearAll();
+      errorCount = 0; errEl.textContent = errorCount;
+      resetTimer();
+      setDisabledAll(true);
+      startBtn.disabled = false;
+      resetBtn.disabled = true;
+      // initialize visible card data
+      if(!ANSWER){
+        ANSWER = randomCardData();
+        renderLeftCard(ANSWER);
+      }
+    }
+
+    // Init
+    resetGame();
+
+    // Events
+    startBtn.addEventListener('click', startGame);
+    resetBtn.addEventListener('click', resetGame);
+    againBtn.addEventListener('click', ()=>{ resetGame(); startGame(); });
+    closeBtn.addEventListener('click', hideModal);
+  </script>
+</body>
+</html>
